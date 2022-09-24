@@ -1,4 +1,4 @@
-from . import models, schemas
+from . import models
 from sqlalchemy.orm import Session
 
 def get_user(db: Session, user_id: int):
