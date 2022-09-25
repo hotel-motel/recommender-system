@@ -31,4 +31,17 @@ async def get_recommended_hotels(user_id : str):
         ) and creator_id <>"""+user_id
 
     sim_user_ids = await database.fetch_all(query=query)
-    return sim_user_ids
+    matrix_sim_user_hotels = {}
+    for sim_user_id in sim_user_ids:
+        query = """
+            SELECT hotel_id
+            FROM rooms
+            WHERE id in (
+                SELECT room_id
+                FROM trips
+                WHERE creator_id = """+str(sim_user_id.creator_id)+"""
+            )
+        """
+        d = await database.fetch_all(query=query)
+        matrix_sim_user_hotels[sim_user_id.creator_id]=d
+    return matrix_sim_user_hotels
