@@ -12,7 +12,6 @@ database = Database(DATABASE_URL)
 @app.get("/hotels/{user_id}")
 async def get_recommended_hotels(user_id : str):
     await database.connect()
-
     query = """
         SELECT DISTINCT(creator_id)
         FROM trips
@@ -21,27 +20,29 @@ async def get_recommended_hotels(user_id : str):
             FROM rooms
             WHERE hotel_id in (
                 SELECT DISTINCT(hotel_id)
-                FROM rooms
-                WHERE id in (
-                    SELECT room_id
-                    FROM trips
-                    WHERE creator_id="""+user_id+"""
-                )
+                FROM trips INNER JOIN rooms ON trips.room_id=room_id
+                WHERE trips.creator_id = """+user_id+"""
             )
-        ) and creator_id <>"""+user_id
-
+        )"""
+        # and creator_id <>"""+user_id
     sim_user_ids = await database.fetch_all(query=query)
-    matrix_sim_user_hotels = {}
-    for sim_user_id in sim_user_ids:
-        query = """
-            SELECT hotel_id
-            FROM rooms
-            WHERE id in (
-                SELECT room_id
-                FROM trips
-                WHERE creator_id = """+str(sim_user_id.creator_id)+"""
-            )
-        """
-        d = await database.fetch_all(query=query)
-        matrix_sim_user_hotels[sim_user_id.creator_id]=d
-    return matrix_sim_user_hotels
+    sim_user_ids_query = ""
+    
+    for u in sim_user_ids:
+        sim_user_ids_query=sim_user_ids_query+str(u.creator_id)+","
+    sim_user_ids_query=sim_user_ids_query[:-1]
+
+    query="""
+        SELECT creator_id, hotel_id
+        FROM trips INNER JOIN rooms ON trips.room_id=rooms.id
+        WHERE creator_id IN ("""+sim_user_ids_query+""")
+         ORDER BY hotel_id
+    """
+    matrix_sim_user_hotels = await database.fetch_all(query=query)
+    weighted = {}
+    for h in matrix_sim_user_hotels:
+        if(h.hotel_id in weighted):
+            weighted[h.hotel_id]=weighted[h.hotel_id]+1
+        else:
+            weighted[h.hotel_id]=1
+    return weighted
