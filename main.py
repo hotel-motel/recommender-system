@@ -20,14 +20,12 @@ async def get_recommended_hotels(user_id : str):
             SELECT DISTINCT(rooms.hotel_id)
             FROM trips INNER JOIN rooms ON trips.room_id=rooms.id
             WHERE trips.creator_id = {}
-        )
-    """.format(user_id)
-    # AND trips.creator_id <> {}
+        ) AND trips.creator_id <> {}
+    """.format(user_id, str(user_id))
     sim_user_ids = await database.fetch_all(query=query)
-    sim_user_ids_query = []
-    for u in sim_user_ids:
-        sim_user_ids_query.append(u.creator_id)
-
+    sim_user_ids = [u.creator_id for u in sim_user_ids]
+    if len(sim_user_ids)<2:
+        return 'Data is bald.'
     query="""
         SELECT hotels.id, hotels.name, hotels.image, hotels.star
         FROM hotels
@@ -39,6 +37,5 @@ async def get_recommended_hotels(user_id : str):
             ORDER BY count(trips.creator_id) DESC
             LIMIT {}
         )
-    """.format(tuple(sim_user_ids_query), str(return_count))
-    response = await database.fetch_all(query=query)
-    return response
+    """.format(tuple(sim_user_ids), str(return_count))
+    return await database.fetch_all(query=query)
