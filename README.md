@@ -5,8 +5,7 @@
 </p>
 <h3 align="center">Hotel Motel Recommender System</h3>
 <p align="center">
-    A recommender system for hotel-motel application
-
+    A recommender system for Hotel Motel application
 </p>
 
 
