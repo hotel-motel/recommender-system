@@ -1,4 +1,5 @@
-databases == 0.6.1
-fastapi == 0.85.0
-python_dotenv == 0.21.0
-names = 0.3.0
+databases
+fastapi
+python_dotenv
+names
+pandas
