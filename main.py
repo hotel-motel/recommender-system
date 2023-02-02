@@ -1,13 +1,10 @@
+from DB import DB
 from fastapi import FastAPI
-from dotenv import load_dotenv
-from os import environ
-from databases import Database
+
 
 app = FastAPI()
-load_dotenv('.env')
+database = DB().connection
 
-DATABASE_URL = environ.get('DB_CONNECTION')+'://'+environ.get('DB_USERNAME')+':'+environ.get('DB_PASSWORD')+'@'+environ.get('DB_HOST')+':'+environ.get('DB_PORT')+'/'+environ.get('DB_DATABASE')
-database = Database(DATABASE_URL)
 
 @app.get("/hotels/{user_id}")
 async def get_recommended_hotels(user_id : str):
@@ -38,4 +35,6 @@ async def get_recommended_hotels(user_id : str):
             LIMIT {}
         )
     """.format(tuple(sim_user_ids), str(return_count))
-    return await database.fetch_all(query=query)
+    result = await database.fetch_all(query=query)
+    database.disconnect()
+    return result
