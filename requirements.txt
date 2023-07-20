@@ -1,5 +1,4 @@
 databases
 fastapi
 python_dotenv
-names
 pandas
